@@ -22,6 +22,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -38,6 +39,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.elevation.SurfaceColors;
 import com.google.android.material.textview.MaterialTextView;
 import com.yangdai.snakegame.fpga.Keypad;
+import com.yangdai.snakegame.fpga.LED;
 import com.yangdai.snakegame.fpga.Segment;
 
 import java.util.ArrayList;
@@ -277,6 +279,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("MainActivity", "onCreate()");
         super.onCreate(savedInstanceState);
         DynamicColors.applyToActivityIfAvailable(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -364,6 +367,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     }
 
+    void updateLED(){
+        LED.fill(snakePointsList.size()-3);
+    }
+
     @SuppressLint("SetTextI18n")
     private void init() {
         imageView.setVisibility(View.VISIBLE);
@@ -372,6 +379,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         if (sound == 0) MusicServer.play(this, R.raw.background);
 
         snakePointsList.clear();
+        updateLED();
 
         scoreTV.setText(getString(R.string.you) + "0");
 
@@ -383,6 +391,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         for (int i = 0; i < defaultLength; i++) {
             SnakePoints snakePoints = new SnakePoints(startPositionX, pointSize);
             snakePointsList.add(snakePoints);
+            updateLED();
             startPositionX = startPositionX - (pointSize * 2);
         }
     }
@@ -585,6 +594,13 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         }, 1000 - snakeMovingSpeed, 1000 - snakeMovingSpeed);
     }
 
+    private void setScore(int x){
+        score = x;
+        if(segment != null) {
+            segment.value = x;
+        }
+    }
+
     private void growSnake() {
         SnakePoints snakePoints = new SnakePoints(0, 0);
         // 加长一格
@@ -592,13 +608,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         setScore(score + 1);
         //加分
         updateText();
-    }
 
-    void setScore(int x){
-        score = x;
-        if(segment != null) {
-            segment.value = x;
-        }
+        updateLED();
     }
 
     private void shrinkSnake() {
@@ -608,6 +619,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         setScore(score + 3);
         //加分
         updateText();
+
+        updateLED();
     }
 
     @SuppressLint("SetTextI18n")

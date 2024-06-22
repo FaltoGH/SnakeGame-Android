@@ -27,7 +27,7 @@ project("snakegame")
 # used in the AndroidManifest.xml file.
 add_library(${CMAKE_PROJECT_NAME} SHARED
     # List C/C++ source files with relative paths to this CMakeLists.txt.
-    fpga/7segment.c fpga/keypad.c fpga/idev.cpp
+    fpga/7segment.c fpga/dipsw.c fpga/dotmatrix.c fpga/fled.c fpga/idev.cpp fpga/keypad.c fpga/led.c fpga/oled.c fpga/textlcd.c
 )
 
 # Check if the ANDROID_NDK_HOME environment variable is set
