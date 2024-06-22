@@ -46,7 +46,7 @@ public class SettingsActivity extends AppCompatActivity {
         if (difficulty % 2 != 0) difficulty -= 1;
         size = sharedPreferences.getInt(SIZE_KEY, 2); // wide
         speed = sharedPreferences.getInt(SPEED_KEY, 0); // slow
-        sound = sharedPreferences.getInt(SOUND_KEY, 0);
+        sound = sharedPreferences.getInt(SOUND_KEY, 2); // none (all off)
 
         slider.setValue(difficulty);
         if (size == 0) sizeGroup.check(R.id.tiny);

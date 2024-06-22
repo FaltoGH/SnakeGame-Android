@@ -37,6 +37,7 @@ import com.google.android.material.color.DynamicColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.elevation.SurfaceColors;
 import com.google.android.material.textview.MaterialTextView;
+import com.yangdai.snakegame.fpga.Keypad;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -85,7 +86,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private final Dpad dpad = new Dpad();
     private ImageView imageView;
     private MaterialTextView textView;
-
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch (keyCode) {
@@ -255,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         barrierNum = sharedPreferences.getInt("difficulty", 0);
         int size = sharedPreferences.getInt("size", 2); // wide
         int speed = sharedPreferences.getInt("speed", 0); // slow
-        sound = sharedPreferences.getInt("sound", 0);
+        sound = sharedPreferences.getInt("sound", 2); // none (all off)
 
         // The greater pointSize, the smaller map size.
         if (size == 0) pointSize = 40; // tiny
@@ -312,6 +312,14 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         });
 
         init();
+
+        new Keypad(new Keypad.KeypadHandler() {
+            @Override
+            public int handle(int x) {
+                onKeypad(x);
+                return 0;
+            }
+        }).start();
     }
 
     @Override
@@ -425,6 +433,26 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         positionX = (pointSize * randomXPosition) + pointSize;
         positionY = (pointSize * randomYPosition) + pointSize;
+    }
+
+    private int onKeypad(int x){
+        switch (x){
+            case 2:
+                movingDirection = "up";
+                break;
+            case 4:
+                movingDirection = "left";
+                break;
+            case 5:
+                movingDirection = "down";
+                break;
+            case 6:
+                movingDirection = "right";
+                break;
+            default:
+                break;
+        }
+        return 0;
     }
 
     private void moveSnake() {
