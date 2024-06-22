@@ -16,10 +16,10 @@ import com.google.android.material.slider.Slider;
 
 public class SettingsActivity extends AppCompatActivity {
     private static final String SETTINGS_KEY = "settings";
-    private static final String DIFFICULTY_KEY = "difficulty";
-    private static final String SIZE_KEY = "size";
-    private static final String SPEED_KEY = "speed";
-    private static final String SOUND_KEY = "sound";
+    public static final String DIFFICULTY_KEY = "difficulty";
+    public static final String SIZE_KEY = "size";
+    public static final String SPEED_KEY = "speed";
+    public static final String SOUND_KEY = "sound";
     private int difficulty;
     private int size;
     private int speed;

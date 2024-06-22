@@ -38,6 +38,7 @@ import com.google.android.material.color.DynamicColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.elevation.SurfaceColors;
 import com.google.android.material.textview.MaterialTextView;
+import com.yangdai.snakegame.fpga.DipSW;
 import com.yangdai.snakegame.fpga.Keypad;
 import com.yangdai.snakegame.fpga.LED;
 import com.yangdai.snakegame.fpga.Segment;
@@ -69,12 +70,12 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     //蛇的颜色
     private static final int snakeColor = Color.YELLOW, specialFood = Color.RED;
     //移动速度
-    private static int snakeMovingSpeed = 800;
+    private static int snakeMovingSpeed;
     //食物位置
     private static int positionX, positionY;
     private static int tempX = -1, tempY = -1;
     //障碍物数量
-    private static int barrierNum = 8;
+    private static int barrierNum;
     private Timer timer;
     private Canvas canvas = null;
     //蛇和食物颜色
@@ -83,7 +84,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private boolean isPaused = false, gameOver = false, started = false;
     private ActivityResultLauncher<Intent> intentActivityResultLauncher;
     SharedPreferences sharedPreferences, sharedPreferences1;
-    private static int sound = -1;
+    private static int sound;
     private boolean bonus = false;
     private final Random random = new Random();
     private final Dpad dpad = new Dpad();
@@ -229,12 +230,20 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             timer.cancel();
         }
         showPauseDialog();
+
+        segment.enable = false;
+
+        LED.set(0);
     }
 
     private void resumeGame() {
         isPaused = false;
         if (sound == 0) MusicServer.play(this, R.raw.background);
         moveSnake();
+
+        segment.enable = true;
+
+        updateLED();
     }
 
     private void showPauseDialog() {
@@ -261,10 +270,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     public static final int DEFAULT_SOUND = 2; // none (all off)
 
     private void getSettings() {
-        barrierNum = sharedPreferences.getInt("difficulty", DEFAULT_DIFFICULTY);
-        int size = sharedPreferences.getInt("size", DEFAULT_SIZE);
-        int speed = sharedPreferences.getInt("speed", DEFAULT_SPEED);
-        sound = sharedPreferences.getInt("sound", DEFAULT_SOUND);
+        barrierNum = sharedPreferences.getInt(SettingsActivity.DIFFICULTY_KEY, DEFAULT_DIFFICULTY);
+        int size = sharedPreferences.getInt(SettingsActivity.SIZE_KEY, DEFAULT_SIZE);
+        int speed = sharedPreferences.getInt(SettingsActivity.SPEED_KEY, DEFAULT_SPEED);
+        sound = sharedPreferences.getInt(SettingsActivity.SOUND_KEY, DEFAULT_SOUND);
 
         // The greater pointSize, the smaller map size.
         if (size == 0) pointSize = 40; // tiny
@@ -326,13 +335,20 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         new Keypad(new Keypad.KeypadHandler() {
             @Override
             public int handle(int x) {
-                onKeypad(x);
-                return 0;
+                return onKeypad(x);
             }
         }).start();
 
         segment = new Segment();
         segment.start();
+
+        new DipSW(new DipSW.DipSWHandler() {
+            @Override
+            public int handle(int x) {
+                return onDipSW(x);
+            }
+        }).start();
+
     }
 
     @Override
@@ -367,10 +383,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     }
 
-    void updateLED(){
-        LED.fill(snakePointsList.size()-3);
-    }
-
     @SuppressLint("SetTextI18n")
     private void init() {
         imageView.setVisibility(View.VISIBLE);
@@ -394,6 +406,37 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             updateLED();
             startPositionX = startPositionX - (pointSize * 2);
         }
+    }
+
+    private static int countBit1(int x){
+        int ret = 0;
+
+        while(x > 0){
+            if(x % 2 == 1){
+                ret++;
+            }
+
+            x >>= 1;
+        }
+
+        return ret;
+    }
+
+    private int onDipSW(int x){
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        int bit1 = countBit1(x);
+        editor.putInt(SettingsActivity.DIFFICULTY_KEY, bit1);
+
+        editor.apply();
+
+        getSettings();
+        return 0;
+    }
+
+    private int updateLED(){
+        LED.fill(snakePointsList.size() - defaultLength);
+        return 0;
     }
 
     private void start() {

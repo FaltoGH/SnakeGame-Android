@@ -13,11 +13,12 @@ public class Segment extends DaemonThread {
     public static native int writeInt(int value);
 
     public int value = -1;
+    public boolean enable = true;
 
     @Override
     public void run(){
             while(true) {
-                if(0 <= value && value <= 999999) {
+                if(0 <= value && value <= 999999 && enable) {
 
                     if (Segment.writeInt(value) != 0) {
 
