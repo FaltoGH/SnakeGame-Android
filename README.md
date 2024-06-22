@@ -17,7 +17,17 @@ We used JNI to call C/C++ function to control fpga devices.
 The snake's length is synchronized with the number of led turned on.
 
 Since snake's default length is 3, the number of led turned on is determined on `length - 3`.
-![image](images/led.png)
+
+![led](images/led.png)
 
 7-segment LEDs display current score.
-![image](images/segment.png)
+
+![segment](images/segment.png)
+
+The number of dip switch on is synchronized with the number of barrier blocks. (But when you enter setting page, it is automatically set to two of multiple. That's why the number of barrier blocks 4 mismatches the number of dip switch on 5 in the picture. Anyway, it's not a big deal.)
+
+![dipsw](images/dipsw.png)
+
+The keypad is the main controller of snake. The other keys is not recognized by device driver(-), or its behavior is undefined(x).
+
+![keypad](images/keypad.png)
