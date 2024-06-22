@@ -27,7 +27,7 @@ public class DotMatrix extends DaemonThread {
 
     public native int DotMatrixControl(String data);
 
-    // Does not work at all.
+    /** @param speed The greater speed, the slower text moving. */
     public void startf(String value, int speed) {
         Log.d("DotMatrix", "dot matrix start value=" + value);
         this.speed = speed;

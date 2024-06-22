@@ -22,6 +22,7 @@ import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
@@ -40,6 +41,7 @@ import com.google.android.material.elevation.SurfaceColors;
 import com.google.android.material.textview.MaterialTextView;
 import com.yangdai.snakegame.fpga.DipSW;
 import com.yangdai.snakegame.fpga.DotMatrix;
+import com.yangdai.snakegame.fpga.FLED;
 import com.yangdai.snakegame.fpga.Keypad;
 import com.yangdai.snakegame.fpga.LED;
 import com.yangdai.snakegame.fpga.Segment;
@@ -93,6 +95,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private MaterialTextView textView;
     private Segment segment;
     private DotMatrix dotMatrix;
+    private FLED fled;
+    private Handler handler;
     public static final int DEFAULT_DIFFICULTY = 0;
     public static final int DEFAULT_SIZE = 2; // wide
     public static final int DEFAULT_SPEED = 0; // slow
@@ -237,7 +241,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         }
         showPauseDialog();
 
-        segment.enable = false;
+        if(segment != null){
+            segment.enable = false;
+        }
 
         LED.set(0);
     }
@@ -247,9 +253,11 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         if (sound == 0) MusicServer.play(this, R.raw.background);
         moveSnake();
 
-        segment.enable = true;
+        if(segment != null) {
+            segment.enable = true;
+        }
 
-        updateLED();
+        onSnakeLengthChanged();
     }
 
     private void showPauseDialog() {
@@ -342,12 +350,29 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         dotMatrix = new DotMatrix();
         dotMatrix.start();
+
+        fled = new FLED();
+        fled.start();
+
+        handler = new Handler();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         if (!isPaused && !gameOver && started) pauseGame();
+        if(segment != null){
+            segment.enable = false;
+        }
+        MusicServer.stop();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(segment != null && !isPaused && started){
+            segment.enable = true;
+        }
     }
 
     @Override
@@ -384,11 +409,13 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         if (sound == 0) MusicServer.play(this, R.raw.background);
 
         snakePointsList.clear();
-        updateLED();
+        onSnakeLengthChanged();
 
         scoreTV.setText(getString(R.string.you) + "0");
 
-        segment.enable = true;
+        if(segment != null){
+            segment.enable = true;
+        }
         setScore(0);
 
         movingDirection = "right";
@@ -399,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             snakePointsList.add(snakePoints);
             startPositionX = startPositionX - (pointSize * 2);
         }
-        updateLED();
+        onSnakeLengthChanged();
 
     }
 
@@ -429,7 +456,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         return 0;
     }
 
-    private int updateLED(){
+    private int onSnakeLengthChanged(){
         LED.fill(snakePointsList.size() - defaultLength);
         return 0;
     }
@@ -506,6 +533,20 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             case 6:
                 movingDirection = "right";
                 break;
+
+            case 0:
+                handler.post(()->{
+                    if (!started) start();
+                });
+                break;
+
+            case 10:
+                // go to home screen
+                Intent startMain = new Intent(Intent.ACTION_MAIN);
+                startMain.addCategory(Intent.CATEGORY_HOME);
+                startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(startMain);
+                break;
             default:
                 break;
         }
@@ -529,7 +570,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             editor.apply();
             highest = score;
 
-            dotMatrix.startf(String.valueOf(highest), 13);
+            dotMatrix.startf(String.valueOf(highest), 20);
         }
 
         final int fhighest = highest;
@@ -550,7 +591,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 .show());
 
         LED.set(0);
-        segment.enable = false;
     }
 
     private void moveSnake() {
@@ -663,7 +703,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         //加分
         updateText();
 
-        updateLED();
+        fled.FLEDControl_t(FLED.ALL_LED, 100, 94, 0);
+
+        onSnakeLengthChanged();
     }
 
     private void shrinkSnake() {
@@ -674,7 +716,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         //加分
         updateText();
 
-        updateLED();
+        fled.FLEDControl_t(FLED.ALL_LED, 100, 0, 0);
+
+        onSnakeLengthChanged();
     }
 
     @SuppressLint("SetTextI18n")
@@ -726,7 +770,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             int red = random.nextInt(100);
             boolean show;
 
-            show = red < 70 || snakePointsList.size() <= defaultLength;
+            show = red < 51 || snakePointsList.size() <= defaultLength;
 
             if (show) {
                 food.setColor(snakeColor);

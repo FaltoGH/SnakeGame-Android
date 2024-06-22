@@ -15,6 +15,7 @@
 #define FULL_LED4 6
 #define ALL_LED   5
 
+// Return value is zero if success, negative integer if error.
 JNIEXPORT jint JNICALL
 Java_com_yangdai_snakegame_fpga_FLED_FLEDControl(JNIEnv* env, jobject thiz,
 jint led_num, jint val1, jint val2, jint val3){
