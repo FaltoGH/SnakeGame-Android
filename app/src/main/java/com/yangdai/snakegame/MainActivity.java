@@ -56,6 +56,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
+    public static final String HIGHEST_KEY = "highest";
     private final List<SnakePoints> snakePointsList = new ArrayList<>();
     //障碍物位置
     private final Set<SnakePoints> barriers = new HashSet<>();
@@ -100,7 +101,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     public static final int DEFAULT_DIFFICULTY = 0;
     public static final int DEFAULT_SIZE = 2; // wide
     public static final int DEFAULT_SPEED = 0; // slow
-    public static final int DEFAULT_SOUND = 2; // none (all off)
+    public static final int DEFAULT_SOUND = 0; // all
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch (keyCode) {
@@ -470,6 +471,11 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         addBarriers();
         addPoints();
         moveSnake();
+
+        if(segment != null){
+            segment.enable = true;
+        }
+        setScore(0);
     }
 
     private void addBarriers() {
@@ -534,10 +540,14 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 movingDirection = "right";
                 break;
 
+            case 9:
+                this.finish();
+                break;
+
             case 0:
-                handler.post(()->{
-                    if (!started) start();
-                });
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt(HIGHEST_KEY, 0);
+                editor.apply();
                 break;
 
             case 10:
@@ -547,6 +557,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(startMain);
                 break;
+
             default:
                 break;
         }
@@ -562,7 +573,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         started = false;
         isPaused = true;
 
-        int highest = sharedPreferences1.getInt("highest", 0);
+        int highest = sharedPreferences1.getInt(HIGHEST_KEY, 0);
 
         if (score > highest) {
             SharedPreferences.Editor editor = sharedPreferences1.edit();
