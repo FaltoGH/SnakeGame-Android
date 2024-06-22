@@ -69,6 +69,9 @@ SD card has enough storage. You can set install location to SD card by type `adb
 
 If you set install location to SD card, you may see `INSTALL_FAILED_DEXOPT` error. [stackoverflow](https://stackoverflow.com/questions/23461138/failure-install-failed-dexopt) says that "The most common cause of the problem is dex limits on android". I interpreted this sentence as "There must be only one application at time". Before installing the app, you can type `adb uninstall <your package name>` to avoid DEXOPT error. For example, in this project, I typed `adb uninstall com.yangdai.snakegame` before every installation. It is a little pain.
 
+### Full color LED parameters formula
+When you call FLEDControl method in FLED class, you should resize the RGB value to make it belongs to interval [0, 100]. That means, you should multiply each arguments with `100 / 255`. For example, if yellow's RGB value is (255, 242, 0), you should pass arguments as (100, 94, 0). **Honestly, I do not know that this logic is true way to pass arguments**, but this logic is applied and seemed working well, at least in this project.
+
 ## Limitations
 
 I also tried to control OLED and TextLCD devices, because I wanted to cover as much as possible devices. It seems that OLED is broken or source code has a bug. And TextLCD does not work properly even though I referenced source code in the book. I don't know why.
