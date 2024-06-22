@@ -26,13 +26,16 @@ public class DipSW extends DaemonThread {
     @Override
     public void run() {
         currentValue = GetValue();
+        if(handler.handle(currentValue) != 0){
+            return;
+        }
 
         while(true) {
             int newValue = GetValue();
             if(currentValue != newValue){
                 currentValue = newValue;
 
-                Log.d("DipSW", "dip switch value="+currentValue);
+                Log.d("DipSW", "dip switch value=" + newValue);
 
                 if(handler.handle(newValue) != 0){
                     return;

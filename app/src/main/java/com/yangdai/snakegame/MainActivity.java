@@ -39,6 +39,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.elevation.SurfaceColors;
 import com.google.android.material.textview.MaterialTextView;
 import com.yangdai.snakegame.fpga.DipSW;
+import com.yangdai.snakegame.fpga.DotMatrix;
 import com.yangdai.snakegame.fpga.Keypad;
 import com.yangdai.snakegame.fpga.LED;
 import com.yangdai.snakegame.fpga.Segment;
@@ -91,6 +92,11 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private ImageView imageView;
     private MaterialTextView textView;
     private Segment segment;
+    private DotMatrix dotMatrix;
+    public static final int DEFAULT_DIFFICULTY = 0;
+    public static final int DEFAULT_SIZE = 2; // wide
+    public static final int DEFAULT_SPEED = 0; // slow
+    public static final int DEFAULT_SOUND = 2; // none (all off)
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch (keyCode) {
@@ -264,11 +270,6 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 .show();
     }
 
-    public static final int DEFAULT_DIFFICULTY = 0;
-    public static final int DEFAULT_SIZE = 2; // wide
-    public static final int DEFAULT_SPEED = 0; // slow
-    public static final int DEFAULT_SOUND = 2; // none (all off)
-
     private void getSettings() {
         barrierNum = sharedPreferences.getInt(SettingsActivity.DIFFICULTY_KEY, DEFAULT_DIFFICULTY);
         int size = sharedPreferences.getInt(SettingsActivity.SIZE_KEY, DEFAULT_SIZE);
@@ -332,23 +333,15 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         init();
 
-        new Keypad(new Keypad.KeypadHandler() {
-            @Override
-            public int handle(int x) {
-                return onKeypad(x);
-            }
-        }).start();
+        new Keypad(this::onKeypad).start();
 
         segment = new Segment();
         segment.start();
 
-        new DipSW(new DipSW.DipSWHandler() {
-            @Override
-            public int handle(int x) {
-                return onDipSW(x);
-            }
-        }).start();
+        new DipSW(this::onDipSW).start();
 
+        dotMatrix = new DotMatrix();
+        dotMatrix.start();
     }
 
     @Override
@@ -395,6 +388,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         scoreTV.setText(getString(R.string.you) + "0");
 
+        segment.enable = true;
         setScore(0);
 
         movingDirection = "right";
@@ -403,9 +397,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         for (int i = 0; i < defaultLength; i++) {
             SnakePoints snakePoints = new SnakePoints(startPositionX, pointSize);
             snakePointsList.add(snakePoints);
-            updateLED();
             startPositionX = startPositionX - (pointSize * 2);
         }
+        updateLED();
+
     }
 
     private static int countBit1(int x){
@@ -517,6 +512,47 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         return 0;
     }
 
+    private void onGameOver(){
+        timer.purge();
+        timer.cancel();
+
+        MusicServer.stop();
+        if (sound != 2) MusicServer.playOneTime(MainActivity.this, R.raw.dead);
+        started = false;
+        isPaused = true;
+
+        int highest = sharedPreferences1.getInt("highest", 0);
+
+        if (score > highest) {
+            SharedPreferences.Editor editor = sharedPreferences1.edit();
+            editor.putInt("highest", score);
+            editor.apply();
+            highest = score;
+
+            dotMatrix.startf(String.valueOf(highest), 13);
+        }
+
+        final int fhighest = highest;
+
+        runOnUiThread(() -> new MaterialAlertDialogBuilder(MainActivity.this)
+                .setMessage(scoreTV.getText() + "\n" + getString(R.string.highest) + fhighest)
+                .setTitle(getString(R.string.end))
+                .setCancelable(false)
+                .setNeutralButton(getString(R.string.cancel), (dialogInterface, i) -> {
+                    isPaused = true;
+                    started = false;
+                    init();
+                })
+                .setPositiveButton(getString(R.string.restart), (dialogInterface, i) -> {
+                    init();
+                    start();
+                })
+                .show());
+
+        LED.set(0);
+        segment.enable = false;
+    }
+
     private void moveSnake() {
         timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -569,32 +605,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
                 //判断结束条件
                 if (gameOver) {
-                    timer.purge();
-                    timer.cancel();
-
-                    MusicServer.stop();
-                    if (sound != 2) MusicServer.playOneTime(MainActivity.this, R.raw.dead);
-                    started = false;
-                    isPaused = true;
-                    if (score > sharedPreferences1.getInt("highest", 0)) {
-                        SharedPreferences.Editor editor = sharedPreferences1.edit();
-                        editor.putInt("highest", score);
-                        editor.apply();
-                    }
-                    runOnUiThread(() -> new MaterialAlertDialogBuilder(MainActivity.this)
-                            .setMessage(scoreTV.getText() + "\n" + getString(R.string.highest) + sharedPreferences1.getInt("highest", 0))
-                            .setTitle(getString(R.string.end))
-                            .setCancelable(false)
-                            .setNeutralButton(getString(R.string.cancel), (dialogInterface, i) -> {
-                                isPaused = true;
-                                started = false;
-                                init();
-                            })
-                            .setPositiveButton(getString(R.string.restart), (dialogInterface, i) -> {
-                                init();
-                                start();
-                            })
-                            .show());
+                    onGameOver();
                 } else {
                     canvas = surfaceHolder.lockCanvas();
                     if (canvas != null) {
