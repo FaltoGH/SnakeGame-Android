@@ -577,7 +577,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         if (score > highest) {
             SharedPreferences.Editor editor = sharedPreferences1.edit();
-            editor.putInt("highest", score);
+            editor.putInt(HIGHEST_KEY, score);
             editor.apply();
             highest = score;
 
