@@ -38,6 +38,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.elevation.SurfaceColors;
 import com.google.android.material.textview.MaterialTextView;
 import com.yangdai.snakegame.fpga.Keypad;
+import com.yangdai.snakegame.fpga.Segment;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     private final Dpad dpad = new Dpad();
     private ImageView imageView;
     private MaterialTextView textView;
+    private Segment segment;
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         switch (keyCode) {
@@ -251,11 +253,16 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 .show();
     }
 
+    public static final int DEFAULT_DIFFICULTY = 0;
+    public static final int DEFAULT_SIZE = 2; // wide
+    public static final int DEFAULT_SPEED = 0; // slow
+    public static final int DEFAULT_SOUND = 2; // none (all off)
+
     private void getSettings() {
-        barrierNum = sharedPreferences.getInt("difficulty", 0);
-        int size = sharedPreferences.getInt("size", 2); // wide
-        int speed = sharedPreferences.getInt("speed", 0); // slow
-        sound = sharedPreferences.getInt("sound", 2); // none (all off)
+        barrierNum = sharedPreferences.getInt("difficulty", DEFAULT_DIFFICULTY);
+        int size = sharedPreferences.getInt("size", DEFAULT_SIZE);
+        int speed = sharedPreferences.getInt("speed", DEFAULT_SPEED);
+        sound = sharedPreferences.getInt("sound", DEFAULT_SOUND);
 
         // The greater pointSize, the smaller map size.
         if (size == 0) pointSize = 40; // tiny
@@ -320,6 +327,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 return 0;
             }
         }).start();
+
+        segment = new Segment();
+        segment.start();
     }
 
     @Override
@@ -365,7 +375,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
         scoreTV.setText(getString(R.string.you) + "0");
 
-        score = 0;
+        setScore(0);
 
         movingDirection = "right";
         int startPositionX = pointSize * defaultLength;
@@ -579,16 +589,23 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         SnakePoints snakePoints = new SnakePoints(0, 0);
         // 加长一格
         snakePointsList.add(snakePoints);
-        score++;
+        setScore(score + 1);
         //加分
         updateText();
+    }
+
+    void setScore(int x){
+        score = x;
+        if(segment != null) {
+            segment.value = x;
+        }
     }
 
     private void shrinkSnake() {
         // 缩短一格
         snakePointsList.remove(snakePointsList.size() - 1);
         // 加三分
-        score += 3;
+        setScore(score + 3);
         //加分
         updateText();
     }
@@ -642,7 +659,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             int red = random.nextInt(100);
             boolean show;
 
-            show = red < 90 || snakePointsList.size() <= defaultLength;
+            show = red < 70 || snakePointsList.size() <= defaultLength;
 
             if (show) {
                 food.setColor(snakeColor);

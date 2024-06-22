@@ -42,11 +42,11 @@ public class SettingsActivity extends AppCompatActivity {
         MaterialButtonToggleGroup soundGroup = findViewById(R.id.sound);
         Slider slider = findViewById(R.id.slider);
 
-        difficulty = sharedPreferences.getInt(DIFFICULTY_KEY, 0);
+        difficulty = sharedPreferences.getInt(DIFFICULTY_KEY, MainActivity.DEFAULT_DIFFICULTY);
         if (difficulty % 2 != 0) difficulty -= 1;
-        size = sharedPreferences.getInt(SIZE_KEY, 2); // wide
-        speed = sharedPreferences.getInt(SPEED_KEY, 0); // slow
-        sound = sharedPreferences.getInt(SOUND_KEY, 2); // none (all off)
+        size = sharedPreferences.getInt(SIZE_KEY, MainActivity.DEFAULT_SIZE);
+        speed = sharedPreferences.getInt(SPEED_KEY, MainActivity.DEFAULT_SPEED);
+        sound = sharedPreferences.getInt(SOUND_KEY, MainActivity.DEFAULT_SOUND);
 
         slider.setValue(difficulty);
         if (size == 0) sizeGroup.check(R.id.tiny);
