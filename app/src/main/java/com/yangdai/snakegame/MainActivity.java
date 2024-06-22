@@ -20,6 +20,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.KeyEvent;
@@ -58,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     //分数
     private static int score = 0;
     // 绘制大小
-    private static int pointSize = 50;
+    private static int pointSize;
     //起始长度
     private static final int defaultLength = 3;
     //蛇的颜色
@@ -252,12 +253,15 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private void getSettings() {
         barrierNum = sharedPreferences.getInt("difficulty", 0);
-        int size = sharedPreferences.getInt("size", 1);
-        int speed = sharedPreferences.getInt("speed", 1);
+        int size = sharedPreferences.getInt("size", 2); // wide
+        int speed = sharedPreferences.getInt("speed", 0); // slow
         sound = sharedPreferences.getInt("sound", 0);
-        if (size == 0) pointSize = 72;
-        else if (size == 2) pointSize = 45;
-        else pointSize = 54;
+
+        // The greater pointSize, the smaller map size.
+        if (size == 0) pointSize = 40; // tiny
+        else if (size == 2) pointSize = 20; // wide
+        else pointSize = 30; // normal
+
         if (speed == 0) snakeMovingSpeed = 750;
         else if (speed == 1) snakeMovingSpeed = 850;
         else snakeMovingSpeed = 900;
@@ -268,7 +272,9 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         DynamicColors.applyToActivityIfAvailable(this);
-        getWindow().setStatusBarColor(SurfaceColors.SURFACE_2.getColor(this));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(SurfaceColors.SURFACE_2.getColor(this));
+        }
         setContentView(R.layout.activity_main);
 
         imageView = findViewById(R.id.imageView);
@@ -324,7 +330,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     public void surfaceCreated(@NonNull SurfaceHolder surfaceHolder) {
         Canvas canvas = surfaceHolder.lockCanvas();
         if (canvas != null) {
-            canvas.drawColor(getColor(R.color.green));
+            canvas.drawColor(getResources().getColor(R.color.green));
             surfaceHolder.unlockCanvasAndPost(canvas);
         }
         this.surfaceHolder = surfaceHolder;
@@ -423,7 +429,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private void moveSnake() {
         timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
+        timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 //头部
@@ -504,7 +510,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                     if (canvas != null) {
                         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
                         //清除画布
-                        canvas.drawColor(getColor(R.color.green));
+                        canvas.drawColor(getResources().getColor(R.color.green));
 
                         //画蛇头位置
                         canvas.drawCircle(snakePointsList.get(0).getPositionX(),
@@ -627,7 +633,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
 
     private void drawBarrier(Canvas canvas, int x, int y) {
         Paint paint = new Paint();
-        paint.setColor(getColor(R.color.brown));
+        paint.setColor(getResources().getColor(R.color.brown));
         Rect rect = new Rect(x - pointSize, y - pointSize, x + pointSize, y + pointSize);
         canvas.drawRect(rect, paint);
     }

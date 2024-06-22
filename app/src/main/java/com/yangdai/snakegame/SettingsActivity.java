@@ -3,9 +3,9 @@ package com.yangdai.snakegame;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 
@@ -26,12 +26,13 @@ public class SettingsActivity extends AppCompatActivity {
     private int sound;
     private SharedPreferences sharedPreferences;
 
-    @SuppressLint("ResourceType")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         DynamicColors.applyToActivityIfAvailable(this);
-        getWindow().setStatusBarColor(SurfaceColors.SURFACE_2.getColor(this));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(SurfaceColors.SURFACE_2.getColor(this));
+        }
         setContentView(R.layout.activity_settings);
 
         sharedPreferences = getSharedPreferences(SETTINGS_KEY, MODE_PRIVATE);
@@ -43,8 +44,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         difficulty = sharedPreferences.getInt(DIFFICULTY_KEY, 0);
         if (difficulty % 2 != 0) difficulty -= 1;
-        size = sharedPreferences.getInt(SIZE_KEY, 1);
-        speed = sharedPreferences.getInt(SPEED_KEY, 1);
+        size = sharedPreferences.getInt(SIZE_KEY, 2); // wide
+        speed = sharedPreferences.getInt(SPEED_KEY, 0); // slow
         sound = sharedPreferences.getInt(SOUND_KEY, 0);
 
         slider.setValue(difficulty);

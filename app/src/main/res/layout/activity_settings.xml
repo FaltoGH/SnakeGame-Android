@@ -167,7 +167,8 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/only" />
+            android:text="@string/only"
+            android:textSize="8sp" />
 
         <Button
             android:id="@+id/none"
