@@ -72,6 +72,9 @@ If you set install location to SD card, you may see `INSTALL_FAILED_DEXOPT` erro
 ### Full color LED parameters formula
 When you call FLEDControl method in FLED class, you should resize the RGB value to make it belongs to interval [0, 100]. That means, you should multiply each arguments with `100 / 255`. For example, if yellow's RGB value is (255, 242, 0), you should pass arguments as (100, 94, 0). **Honestly, I do not know that this logic is true way to pass arguments**, but this logic is applied and seemed working well, at least in this project.
 
+## Build and Deployment Process
+I accessed the ARM architecture cross-compilation environment provided by the professor via SSH to review and modify code related to the Android and FPGA board. On the server, I cross-compiled the Linux kernel and U-Boot bootloader, then built the Android system image, initial RAM disk, and recovery image, downloading them to my PC. The U-Boot, kernel image, and initial RAM disk were written to an SD card and inserted into the FPGA board, while the Android system image and recovery image were flashed to the FPGA board’s flash memory using Fastboot. Using PuTTY’s serial console, I configured boot environment variables in the U-Boot prompt, such as memory start address, kernel load location, and root filesystem location. After rebooting the FPGA board, I monitored the kernel loading and Android system initialization process, then tested basic Android and hardware functions upon boot completion. This process ensures hardware-software integration and serves as a reference for successors to replicate or debug the system.
+
 ## Limitations
 
 I also tried to control OLED and TextLCD devices, because I wanted to cover as much as possible devices. It seems that OLED is broken or source code has a bug. And TextLCD does not work properly even though I referenced source code in the book. I don't know why.
